@@ -64,6 +64,23 @@
             }
         },
         {
+            "name": "ios",
+            "inherits": "release",
+            "displayName": "iOS device (arm64) Vanilla build",
+            "cacheVariables": {
+                "CMAKE_SYSTEM_NAME": "iOS",
+                "CMAKE_OSX_ARCHITECTURES": "arm64",
+                "CMAKE_OSX_SYSROOT": "iphoneos",
+                "CMAKE_OSX_DEPLOYMENT_TARGET": "15.0",
+                "MAKE_BUNDLE": "OFF",
+                "BUILD_TOOLS": "OFF",
+                "BUILD_TESTS": "OFF"
+            },
+            "environment": {
+                "CMAKE_FIND_ROOT_PATH": "build-deps/ios"
+            }
+        },
+        {
             "name": "msvc2019-i686-remaster",
             "inherits": "remaster",
             "binaryDir": "${sourceDir}/build_remaster",
@@ -88,6 +105,13 @@
         }
     ],
     "buildPresets": [
+        {
+            "name": "ios",
+            "configurePreset": "ios",
+            "displayName": "iOS Vanilla Game Build",
+            "description": "iOS Vanilla Game Build",
+            "configuration": "RelWithDebInfo"
+        },
         {
             "name": "remaster",
             "configurePreset": "remaster",

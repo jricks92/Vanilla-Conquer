@@ -66,6 +66,9 @@
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #include "function.h"
+#ifdef __APPLE__
+#include <TargetConditionals.h>
+#endif
 #include "msgbox.h"
 #include "keyframe.h"
 #include "language.h"
@@ -3205,7 +3208,13 @@ int VQ_Call_Back(unsigned char*, int)
 #endif
     Frame_Limiter();
 
-    if ((BreakoutAllowed || Debug_Flag) && key == KN_ESC) {
+    bool skip_key = (key == KN_ESC);
+#if defined(__APPLE__) && TARGET_OS_IPHONE
+    // On iOS a tap (synthesized left click) also skips the movie; there is no
+    // Esc key available by default.
+    skip_key = skip_key || ((key & 0x00FF) == KN_LMOUSE);
+#endif
+    if ((BreakoutAllowed || Debug_Flag) && skip_key) {
         Keyboard->Clear();
         Brokeout = true;
         return (true);
@@ -4086,7 +4095,7 @@ bool Force_CD_Available(int cd)
 #endif
 
 #ifdef FRENCH
-                sprintf(buffer, "InsŠrez le %s", _cd_name[cd]);
+                sprintf(buffer, "Insï¿½rez le %s", _cd_name[cd]);
 #else
 #ifdef GERMAN
                 sprintf(buffer, "Bitte %s", _cd_name[cd]);
@@ -4097,7 +4106,7 @@ bool Force_CD_Available(int cd)
             } else {
 #ifdef DVD
 #ifdef FRENCH
-                sprintf(buffer, "InsŠrez le %s", _cd_name[4]);
+                sprintf(buffer, "Insï¿½rez le %s", _cd_name[4]);
 #else
 #ifdef GERMAN
                 sprintf(buffer, "Bitte %s", _cd_name[4]);

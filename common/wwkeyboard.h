@@ -39,7 +39,13 @@
 #include <stdint.h>
 
 #ifdef SDL_BUILD
+#ifdef __APPLE__
+#include <TargetConditionals.h>
+#endif
+// On iOS SDL must wrap main in UIApplicationMain, so SDL_main.h has to stay active.
+#if !defined(__APPLE__) || !TARGET_OS_IPHONE
 #define SDL_MAIN_HANDLED
+#endif
 #include <SDL.h>
 #endif
 
@@ -51,6 +57,7 @@ typedef enum
     WWKEY_RLS_BIT = 0x800,
     WWKEY_VK_BIT = 0x1000,
     WWKEY_DBL_BIT = 0x2000,
+    WWKEY_TEXT_BIT = 0x4000, // low byte is a literal ASCII char (e.g. iOS software keyboard)
     WWKEY_BTN_BIT = 0x8000,
 } WWKey_Type;
 
@@ -870,6 +877,7 @@ public:
     KeyNumType Check(void) const;
     KeyNumType Get(void);
     bool Put(unsigned short key);
+    bool Put_Char(char c); // inject a literal text character (software keyboard)
     void Clear(void);
     virtual KeyASCIIType To_ASCII(unsigned short num) = 0;
     bool Down(unsigned short key);

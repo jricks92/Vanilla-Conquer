@@ -63,6 +63,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#ifdef __APPLE__
+#include <TargetConditionals.h>
+#endif
 #include "common/framelimit.h"
 #include "common/paths.h"
 #include "common/vqatask.h"
@@ -2946,7 +2949,13 @@ int VQ_Call_Back(unsigned char*, int)
     Interpolate_2X_Scale(&SysMemPage, &SeenBuff, NULL, Settings.Video.InterpolationMode);
     Frame_Limiter();
 
-    if ((BreakoutAllowed || Debug_Flag) && key == KN_ESC) {
+    bool skip_key = (key == KN_ESC);
+#if defined(__APPLE__) && TARGET_OS_IPHONE
+    // On iOS a tap (synthesized left click) also skips the movie; there is no
+    // Esc key available by default.
+    skip_key = skip_key || ((key & 0x00FF) == KN_LMOUSE);
+#endif
+    if ((BreakoutAllowed || Debug_Flag) && skip_key) {
         Keyboard->Clear();
         Brokeout = true;
         return (true);

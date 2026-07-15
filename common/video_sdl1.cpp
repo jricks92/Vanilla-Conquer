@@ -179,6 +179,19 @@ void Set_Video_Cursor_Clip(bool clipped)
     }
 }
 
+void Show_Virtual_Keyboard(bool show)
+{
+}
+
+void Reraise_Virtual_Keyboard()
+{
+}
+
+bool Virtual_Keyboard_Wanted()
+{
+    return false;
+}
+
 void Move_Video_Mouse(float xrel, float yrel)
 {
     if (Keyboard->Is_Gamepad_Active() || hwcursor.Clip || !Settings.Video.Windowed) {

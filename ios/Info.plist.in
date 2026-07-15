@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleDevelopmentRegion</key>
+    <string>en</string>
+    <key>CFBundleDisplayName</key>
+    <string>Vanilla Conquer</string>
+    <key>CFBundleExecutable</key>
+    <string>__EXECUTABLE__</string>
+    <key>CFBundleIdentifier</key>
+    <string>__BUNDLE_ID__</string>
+    <key>CFBundleInfoDictionaryVersion</key>
+    <string>6.0</string>
+    <key>CFBundleName</key>
+    <string>Vanilla Conquer</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <!-- Loose-PNG icon files (LiveContainer/dev installs read these from the
+         bundle root). CFBundleIcons covers the modern lookup path. -->
+    <key>CFBundleIconFiles</key>
+    <array>
+        <string>AppIcon60x60</string>
+        <string>AppIcon76x76</string>
+        <string>AppIcon83.5x83.5</string>
+    </array>
+    <key>CFBundleIcons</key>
+    <dict>
+        <key>CFBundlePrimaryIcon</key>
+        <dict>
+            <key>CFBundleIconFiles</key>
+            <array>
+                <string>AppIcon60x60</string>
+            </array>
+        </dict>
+    </dict>
+    <key>CFBundleIcons~ipad</key>
+    <dict>
+        <key>CFBundlePrimaryIcon</key>
+        <dict>
+            <key>CFBundleIconFiles</key>
+            <array>
+                <string>AppIcon60x60</string>
+                <string>AppIcon76x76</string>
+                <string>AppIcon83.5x83.5</string>
+            </array>
+        </dict>
+    </dict>
+    <key>CFBundleShortVersionString</key>
+    <string>1.0</string>
+    <key>CFBundleVersion</key>
+    <string>1</string>
+    <key>LSRequiresIPhoneOS</key>
+    <true/>
+    <key>MinimumOSVersion</key>
+    <string>15.0</string>
+    <key>UIDeviceFamily</key>
+    <array>
+        <integer>1</integer>
+        <integer>2</integer>
+    </array>
+    <!-- Empty modern launch screen dict opts into full native resolution;
+         without it iOS runs the app scaled in legacy compatibility mode. -->
+    <key>UILaunchScreen</key>
+    <dict/>
+    <key>UIRequiresFullScreen</key>
+    <true/>
+    <key>UIStatusBarHidden</key>
+    <true/>
+    <key>UISupportedInterfaceOrientations</key>
+    <array>
+        <string>UIInterfaceOrientationLandscapeLeft</string>
+        <string>UIInterfaceOrientationLandscapeRight</string>
+    </array>
+    <key>UIApplicationSupportsIndirectInputEvents</key>
+    <true/>
+    <key>UIFileSharingEnabled</key>
+    <true/>
+    <key>LSSupportsOpeningDocumentsInPlace</key>
+    <true/>
+    <key>NSLocalNetworkUsageDescription</key>
+    <string>Local network access is used for LAN multiplayer games.</string>
+</dict>
+</plist>

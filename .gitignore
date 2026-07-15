@@ -2,3 +2,5 @@
 /CMakeUserPresets.json
 /.cache
 /.vscode
+build-deps/
+/dist

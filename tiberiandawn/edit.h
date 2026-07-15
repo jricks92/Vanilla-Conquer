@@ -60,6 +60,8 @@ public:
 
     virtual int Draw_Me(int forced);
     virtual void Set_Text(char* text, int max_len);
+    virtual void Set_Focus(void);
+    virtual void Clear_Focus(void);
     void Set_Color(int color)
     {
         Color = color;

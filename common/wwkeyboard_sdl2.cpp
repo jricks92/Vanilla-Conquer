@@ -25,6 +25,32 @@ void Focus_Loss();
 void Focus_Restore();
 void Process_Network();
 
+#if defined(__APPLE__) && TARGET_OS_IPHONE
+// Keys that must still flow through the scancode path during text input
+// (they are not produced as SDL_TEXTINPUT characters).
+static bool Is_Text_Control_Scancode(SDL_Scancode sc)
+{
+    switch (sc) {
+    case SDL_SCANCODE_RETURN:
+    case SDL_SCANCODE_RETURN2:
+    case SDL_SCANCODE_KP_ENTER:
+    case SDL_SCANCODE_BACKSPACE:
+    case SDL_SCANCODE_ESCAPE:
+    case SDL_SCANCODE_TAB:
+    case SDL_SCANCODE_LEFT:
+    case SDL_SCANCODE_RIGHT:
+    case SDL_SCANCODE_UP:
+    case SDL_SCANCODE_DOWN:
+    case SDL_SCANCODE_DELETE:
+    case SDL_SCANCODE_HOME:
+    case SDL_SCANCODE_END:
+        return true;
+    default:
+        return false;
+    }
+}
+#endif
+
 WWKeyboardClassSDL2::~WWKeyboardClassSDL2()
 {
 }
@@ -43,6 +69,17 @@ void WWKeyboardClassSDL2::Fill_Buffer_From_System(void)
             exit(0);
             break;
         case SDL_KEYDOWN:
+#if defined(__APPLE__) && TARGET_OS_IPHONE
+            /*
+            ** While the on-screen (or hardware) keyboard is delivering text,
+            ** printable characters arrive via SDL_TEXTINPUT. Forward only the
+            ** editing/control keys through the scancode path so text is not
+            ** entered twice.
+            */
+            if (SDL_IsTextInputActive() && !Is_Text_Control_Scancode(event.key.keysym.scancode)) {
+                break;
+            }
+#endif
             Put_Key_Message(event.key.keysym.scancode, false);
             break;
         case SDL_KEYUP:
@@ -52,12 +89,33 @@ void WWKeyboardClassSDL2::Fill_Buffer_From_System(void)
                 Put_Key_Message(event.key.keysym.scancode, true);
             }
             break;
+        case SDL_TEXTINPUT:
+            /*
+            ** Finished characters from an input method (notably the iOS
+            ** software keyboard). Feed each byte in as literal text.
+            */
+            for (const char* c = event.text.text; *c != '\0'; ++c) {
+                Put_Char(*c);
+            }
+            break;
         case SDL_MOUSEMOTION:
+            if (event.motion.which == SDL_TOUCH_MOUSEID) {
+                break; // Touch is handled by our own gesture layer.
+            }
             Move_Video_Mouse(static_cast<float>(event.motion.xrel), static_cast<float>(event.motion.yrel));
+            break;
+        case SDL_FINGERDOWN:
+        case SDL_FINGERUP:
+        case SDL_FINGERMOTION:
+            Handle_Touch_Event(event);
             break;
         case SDL_MOUSEBUTTONDOWN:
         case SDL_MOUSEBUTTONUP: {
             int x, y;
+
+            if (event.button.which == SDL_TOUCH_MOUSEID) {
+                break; // Touch is handled by our own gesture layer.
+            }
 
             switch (event.button.button) {
             case SDL_BUTTON_LEFT:
@@ -83,6 +141,12 @@ void WWKeyboardClassSDL2::Fill_Buffer_From_System(void)
 
             Put_Mouse_Message(key, x, y, event.type == SDL_MOUSEBUTTONDOWN ? false : true);
         } break;
+        case SDL_APP_WILLENTERBACKGROUND:
+            Focus_Loss();
+            break;
+        case SDL_APP_DIDENTERFOREGROUND:
+            Focus_Restore();
+            break;
         case SDL_WINDOWEVENT:
             switch (event.window.event) {
             case SDL_WINDOWEVENT_EXPOSED:
@@ -130,6 +194,10 @@ void WWKeyboardClassSDL2::Fill_Buffer_From_System(void)
     if (Is_Gamepad_Active()) {
         Process_Controller_Axis_Motion();
     }
+
+    // Long-press and pan-stall detection need polling; a still finger
+    // generates no events.
+    Process_Touch();
 }
 
 bool WWKeyboardClassSDL2::Is_Gamepad_Active()
@@ -317,6 +385,12 @@ KeyASCIIType WWKeyboardClassSDL2::To_ASCII(unsigned short key)
 {
     if (key & WWKEY_RLS_BIT) {
         return KA_NONE;
+    }
+
+    // Literal text characters (e.g. from the iOS software keyboard) carry their
+    // ASCII value directly and must not be run through the scancode keymap.
+    if (key & WWKEY_TEXT_BIT) {
+        return (KeyASCIIType)(key & 0xFF);
     }
 
     key &= 0xFF; // drop all mods

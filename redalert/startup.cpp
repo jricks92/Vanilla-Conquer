@@ -47,7 +47,13 @@ void Print_Error_End_Exit(char* string);
 void Print_Error_Exit(char* string);
 
 #ifdef SDL_BUILD
+#ifdef __APPLE__
+#include <TargetConditionals.h>
+#endif
+// On iOS SDL must wrap main in UIApplicationMain, so SDL_main.h has to stay active.
+#if !defined(__APPLE__) || !TARGET_OS_IPHONE
 #define SDL_MAIN_HANDLED
+#endif
 #include <SDL.h>
 #endif
 
@@ -290,6 +296,10 @@ int main(int argc, char* argv[])
     **	Remember the current working directory and drive.
     */
     Paths.Init("vanillara", CONFIG_FILE_NAME, "REDALERT.MIX", args.ArgV[0]);
+#if defined(__APPLE__) && TARGET_OS_IPHONE
+    // Anchor CWD-relative file access to the bundled game data.
+    chdir(Paths.Data_Path());
+#endif
     CDFileClass::Refresh_Search_Drives();
 
     if (Parse_Command_Line(args.ArgC, args.ArgV)) {
@@ -446,14 +456,22 @@ int main(int argc, char* argv[])
         ** See if we should run the intro
         */
         INIClass ini;
-        ini.Load(cfile);
+        if (cfile.Is_Available()) {
+            ini.Load(cfile);
+        }
 
         /*
         **	Check for forced intro movie run disabling. If the conquer
         **	configuration file says "no", then don't run the intro.
         */
         if (!Special.IsFromInstall) {
+#if defined(__APPLE__) && TARGET_OS_IPHONE
+            // Boot to the main menu by default on iOS instead of the 1995
+            // first-run intro flow.
+            Special.IsFromInstall = ini.Get_Bool("Intro", "PlayIntro", false);
+#else
             Special.IsFromInstall = ini.Get_Bool("Intro", "PlayIntro", true);
+#endif
         }
         SlowPalette = ini.Get_Bool("Options", "SlowPalette", false);
 
@@ -479,7 +497,9 @@ int main(int argc, char* argv[])
         /*
         ** Save settings if they were changed during gameplay.
         */
-        ini.Load(cfile);
+        if (cfile.Is_Available()) {
+            ini.Load(cfile);
+        }
         Settings.Save(ini);
         ini.Save(cfile);
 
@@ -512,6 +532,16 @@ int main(int argc, char* argv[])
         do {
             Keyboard->Check();
         } while (ReadyToQuit == 1);
+#endif
+
+#if defined(__APPLE__) && TARGET_OS_IPHONE
+        /*
+        ** On iOS, SDL owns the UIApplicationMain run loop, so returning from
+        ** SDL_main does not terminate the process (the app would sit on a black
+        ** screen). Exit explicitly; under LiveContainer this returns to the
+        ** container.
+        */
+        exit(EXIT_SUCCESS);
 #endif
 
         return (EXIT_SUCCESS);

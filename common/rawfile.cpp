@@ -58,6 +58,10 @@
 #include "file.h"
 #include "wwstd.h"
 
+#ifdef __APPLE__
+#include <TargetConditionals.h>
+#endif
+
 #ifndef _WIN32
 #include <unistd.h>
 #define _unlink         unlink
@@ -170,8 +174,14 @@ char const* RawFileClass::Set_Name(char const* filename)
     ** If we ever save this file, make sure we save it in lowercase but
     ** if Resolve_File finds an actual file on-disk we use the real name
     ** instead.
+    **
+    ** Not on iOS: the filesystem is case sensitive and the sandbox forbids
+    ** scanning parent directories (e.g. /private/var/mobile), so a lowercased
+    ** absolute path can never be case-corrected back by Resolve_File.
     */
+#if !defined(__APPLE__) || !TARGET_OS_IPHONE
     _strlwr(Filename);
+#endif
 
     /*
     ** Try to locate an existing file ignoring case, updates Filename

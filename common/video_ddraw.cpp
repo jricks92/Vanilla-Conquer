@@ -957,6 +957,19 @@ void Set_Video_Cursor_Clip(bool clipped)
     clipped;
 }
 
+void Show_Virtual_Keyboard(bool show)
+{
+}
+
+void Reraise_Virtual_Keyboard()
+{
+}
+
+bool Virtual_Keyboard_Wanted()
+{
+    return false;
+}
+
 /***********************************************************************************************
  * SMC::SurfaceMonitorClass -- constructor for surface monitor class                           *
  *                                                                                             *

@@ -179,6 +179,16 @@ const char* PathsClass::Program_Path()
 const char* PathsClass::Data_Path()
 {
     if (DataPath.empty()) {
+#if defined(__APPLE__) && TARGET_OS_IPHONE
+        // Read-only game data is bundled inside the app next to the binary.
+        // Point the data path there so CDFileClass searches it; the engine's
+        // portable-mode detection in PathsClass::Init would otherwise not run
+        // for CWD-relative access under the iOS sandbox.
+        if (ProgramPath.empty()) {
+            Program_Path();
+        }
+        DataPath = ProgramPath;
+#else
         if (ProgramPath.empty()) {
             // Init the program path first if it hasn't been done already.
             Program_Path();
@@ -189,6 +199,7 @@ const char* PathsClass::Data_Path()
         if (!Suffix.empty()) {
             DataPath += SEP + Suffix;
         }
+#endif
     }
 
     return DataPath.c_str();

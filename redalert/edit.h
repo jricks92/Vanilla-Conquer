@@ -59,6 +59,7 @@ public:
     virtual ~EditClass(void);
 
     virtual void Set_Focus(void);
+    virtual void Clear_Focus(void);
     virtual int Draw_Me(int forced);
     virtual void Set_Text(char* text, int max_len);
     virtual char* Get_Text(void)

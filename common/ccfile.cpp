@@ -44,6 +44,7 @@
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 #include <errno.h>
 #include "ccfile.h"
+#include "debugstring.h"
 
 /***********************************************************************************************
  * CCFileClass::CCFileClass -- Filename based constructor for C&C file.                        *
@@ -111,6 +112,11 @@ CCFileClass::CCFileClass(void)
  *=============================================================================================*/
 void CCFileClass::Error(int error, int canretry, char const* filename)
 {
+    DBG_ERROR("CCFileClass::Error errno=%d retry=%d file='%s' (this='%s')",
+              error,
+              canretry,
+              filename ? filename : "(null)",
+              File_Name() ? File_Name() : "(null)");
     if (!Force_CD_Available(RequiredCD)) {
         Prog_End("CCFileClass::Error CD not found", true);
         if (!RunningAsDLL) { // PG

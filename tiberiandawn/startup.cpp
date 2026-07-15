@@ -52,6 +52,14 @@ HINSTANCE ProgramInstance;
 #include <unistd.h>
 #endif
 
+#ifdef __APPLE__
+#include <TargetConditionals.h>
+#if TARGET_OS_IPHONE
+// SDL redefines main to SDL_main and wraps it in UIApplicationMain on iOS.
+#include <SDL_main.h>
+#endif
+#endif
+
 extern int ReadyToQuit;
 void Read_Setup_Options(RawFileClass* config_file);
 
@@ -208,7 +216,7 @@ int main(int argc, char** argv)
         printf("Zuwenig Hauptspeicher verf?gbar.\n");
 #else
 #ifdef FRENCH
-        printf("M‚moire vive (RAM) insuffisante.\n");
+        printf("Mï¿½moire vive (RAM) insuffisante.\n");
 #else
         printf("Insufficient RAM available.\n");
 #endif
@@ -224,6 +232,10 @@ int main(int argc, char** argv)
     **	Remember the current working directory and drive.
     */
     Paths.Init("vanillatd", "CONQUER.INI", "CONQUER.MIX", args.ArgV[0]);
+#if defined(__APPLE__) && TARGET_OS_IPHONE
+    // Anchor CWD-relative file access to the bundled game data.
+    chdir(Paths.Data_Path());
+#endif
     CDFileClass::Refresh_Search_Drives();
 
     if (Parse_Command_Line(args.ArgC, args.ArgV)) {
@@ -424,14 +436,22 @@ int main(int argc, char** argv)
         ** See if we should run the intro
         */
         INIClass ini;
-        ini.Load(cfile);
+        if (cfile.Is_Available()) {
+            ini.Load(cfile);
+        }
 
         /*
         **	Check for forced intro movie run disabling. If the conquer
         **	configuration file says "no", then don't run the intro.
         */
         if (!Special.IsFromInstall) {
+#if defined(__APPLE__) && TARGET_OS_IPHONE
+            // Boot to the main menu by default on iOS instead of the 1995
+            // first-run intro flow.
+            Special.IsFromInstall = ini.Get_Bool("Intro", "PlayIntro", false);
+#else
             Special.IsFromInstall = ini.Get_Bool("Intro", "PlayIntro", true);
+#endif
         }
         SlowPalette = ini.Get_Bool("Options", "SlowPalette", false);
 
@@ -457,7 +477,9 @@ int main(int argc, char** argv)
         /*
         ** Save settings if they were changed during gameplay.
         */
-        ini.Load(cfile);
+        if (cfile.Is_Available()) {
+            ini.Load(cfile);
+        }
         Settings.Save(ini);
         ini.Save(cfile);
 
@@ -496,6 +518,16 @@ int main(int argc, char** argv)
 #endif
 
         CCDebugString("C&C95 - Returned from final message loop.\n");
+
+#if defined(__APPLE__) && TARGET_OS_IPHONE
+        /*
+        ** On iOS, SDL owns the UIApplicationMain run loop, so returning from
+        ** SDL_main does not terminate the process (the app would sit on a black
+        ** screen). Exit explicitly; under LiveContainer this returns to the
+        ** container.
+        */
+        exit(EXIT_SUCCESS);
+#endif
         // Prog_End();
         // Invalidate_Cached_Icons();
         // VisiblePage.Un_Init();

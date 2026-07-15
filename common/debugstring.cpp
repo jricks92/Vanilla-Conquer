@@ -9,6 +9,10 @@
 #include <io.h>
 #endif
 
+#ifdef __APPLE__
+#include <TargetConditionals.h>
+#endif
+
 static class DebugStateClass
 {
 public:
@@ -31,6 +35,17 @@ public:
             if (_fileno(stdin) == -2 || _get_osfhandle(fileno(stdin)) == -2) {
                 freopen("CONIN$", "r", stdin);
             }
+        }
+#endif
+
+#if defined(__APPLE__) && TARGET_OS_IPHONE
+        /* No console exists on iOS; log to a file in the sandbox where it can
+        ** be retrieved over USB or the Files app. */
+        const char* home = getenv("HOME");
+        if (home != nullptr) {
+            char path[512];
+            snprintf(path, sizeof(path), "%s/Documents/vanilla-debug.log", home);
+            File = fopen(path, "w");
         }
 #endif
     }

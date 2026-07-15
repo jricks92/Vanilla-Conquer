@@ -452,4 +452,16 @@ void EditClass::Set_Focus(void)
         Length = int(strlen(String));
     }
     ControlClass::Set_Focus();
+    if (!IsReadOnly) {
+        // Raise the on-screen keyboard on touch platforms (no-op on desktop).
+        Show_Virtual_Keyboard(true);
+    }
+}
+
+void EditClass::Clear_Focus(void)
+{
+    if (Has_Focus()) {
+        Show_Virtual_Keyboard(false);
+    }
+    ControlClass::Clear_Focus();
 }

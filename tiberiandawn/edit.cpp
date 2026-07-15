@@ -124,6 +124,31 @@ EditClass::~EditClass(void)
 }
 
 /***********************************************************************************************
+ * EditClass::Set_Focus -- Take keyboard focus and raise the on-screen keyboard.               *
+ *                                                                                             *
+ *    On touch platforms this brings up the software keyboard so the field can be typed into   *
+ *    without a hardware keyboard. On desktop Show_Virtual_Keyboard is a no-op.                 *
+ *=============================================================================================*/
+void EditClass::Set_Focus(void)
+{
+    GadgetClass::Set_Focus();
+    if (!IsReadOnly) {
+        Show_Virtual_Keyboard(true);
+    }
+}
+
+/***********************************************************************************************
+ * EditClass::Clear_Focus -- Release keyboard focus and dismiss the on-screen keyboard.        *
+ *=============================================================================================*/
+void EditClass::Clear_Focus(void)
+{
+    if (Has_Focus()) {
+        Show_Virtual_Keyboard(false);
+    }
+    GadgetClass::Clear_Focus();
+}
+
+/***********************************************************************************************
  * EditClass::Set_Text -- Sets the text to the edit gadget.                                    *
  *                                                                                             *
  *    Use this routine to change the text that this edit gadget refers to.                     *

@@ -1,0 +1,21 @@
+--- a/src/video/uikit/SDL_uikitviewcontroller.m
++++ b/src/video/uikit/SDL_uikitviewcontroller.m
+@@ -410,6 +410,12 @@
+ - (void)showKeyboard
+ {
+     if (keyboardVisible) {
+         return;
+     }
+
++    /* Reset the field to the placeholder each time the keyboard is raised so
++       stale text from a previous session does not linger in the field's
++       document context (which drives the predictive/suggestion bar). */
++    textField.text = obligateForBackspace;
++    committedText = textField.text;
++
+     keyboardVisible = YES;
+     if (textField.window) {
+         showingKeyboard = YES;
+         [textField becomeFirstResponder];
+     }
+ }

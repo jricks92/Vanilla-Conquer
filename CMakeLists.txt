@@ -141,9 +141,20 @@ endif()
 
 if(SDL2)
     message("Find path is ${CMAKE_FIND_ROOT_PATH}")
-    find_package(SDL2 REQUIRED)
-    list(APPEND VANILLA_LIBS ${SDL2_LIBRARY})
-    include_directories(${SDL2_INCLUDE_DIR})
+    if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
+        # The static iOS SDL2 needs its full framework link interface, which only
+        # SDL2's own exported config package carries.
+        find_package(SDL2 CONFIG REQUIRED)
+        list(APPEND VANILLA_LIBS SDL2::SDL2main SDL2::SDL2-static)
+        # The common lib includes SDL headers without linking the target, so
+        # mirror the global include dirs the non-config path sets up.
+        get_target_property(_sdl2_incs SDL2::SDL2-static INTERFACE_INCLUDE_DIRECTORIES)
+        include_directories(${_sdl2_incs})
+    else()
+        find_package(SDL2 REQUIRED)
+        list(APPEND VANILLA_LIBS ${SDL2_LIBRARY})
+        include_directories(${SDL2_INCLUDE_DIR})
+    endif()
 
     # winuser.h defines VK_ macros but it can be prevented
     if(WIN32)
@@ -153,7 +164,12 @@ if(SDL2)
 endif()
 
 if(OPENAL)
-    find_package(OpenAL REQUIRED)
+    if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
+        # Same reasoning as SDL2: the config package links CoreAudio & friends.
+        find_package(OpenAL CONFIG REQUIRED)
+    else()
+        find_package(OpenAL REQUIRED)
+    endif()
     list(APPEND VANILLA_LIBS OpenAL::OpenAL)
     set(DSOUND OFF)
 endif()

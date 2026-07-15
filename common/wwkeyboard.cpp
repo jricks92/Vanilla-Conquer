@@ -197,6 +197,26 @@ bool WWKeyboardClass::Put(unsigned short key)
 }
 
 /***********************************************************************************************
+ * WWKeyboardClass::Put_Char -- Inject a literal text character into the keyboard buffer.      *
+ *                                                                                             *
+ *    Used for text sources that already produce finished characters (such as the iOS software *
+ *    keyboard delivering SDL_TEXTINPUT), rather than physical scancodes. The character is     *
+ *    tagged with WWKEY_TEXT_BIT so To_ASCII returns it verbatim regardless of the physical    *
+ *    keyboard's current modifier state.                                                       *
+ *=============================================================================================*/
+bool WWKeyboardClass::Put_Char(char c)
+{
+    unsigned char uc = (unsigned char)c;
+
+    // Only printable ASCII is meaningful to the edit gadgets.
+    if (uc < ' ' || uc > 126) {
+        return (false);
+    }
+
+    return (Put((unsigned short)(WWKEY_TEXT_BIT | uc)));
+}
+
+/***********************************************************************************************
  * WWKeyboardClass::Put_Key_Message -- Translates and inserts wParam into Keyboard Buffer      *
  *                                                                                             *
  * INPUT:                                                                                      *

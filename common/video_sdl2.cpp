@@ -219,6 +219,20 @@ bool Set_Video_Mode(int w, int h, int bits_per_pixel)
     SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);
     SDL_ShowCursor(SDL_DISABLE);
 
+    /*
+    ** Touch input is handled by our own gesture layer; suppress SDL's
+    ** built-in touch-to-mouse (and mouse-to-touch) synthesis.
+    */
+    SDL_SetHint(SDL_HINT_TOUCH_MOUSE_EVENTS, "0");
+    SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS, "0");
+
+    // iOS starts with text input active, which would raise the software
+    // keyboard on the menus. Default it off; text fields turn it on explicitly.
+    SDL_StopTextInput();
+
+    void Video_Register_Lifecycle_Watch();
+    Video_Register_Lifecycle_Watch();
+
     int win_w = w;
     int win_h = h;
     int win_flags = 0;
@@ -443,6 +457,77 @@ void Move_Video_Mouse(float xrel, float yrel)
     } else if (hwcursor.Y < 0) {
         hwcursor.Y = 0;
     }
+}
+
+void Set_Video_Mouse(int x, int y)
+{
+    hwcursor.X = x;
+    hwcursor.Y = y;
+
+    if (hwcursor.X >= hwcursor.GameW) {
+        hwcursor.X = hwcursor.GameW - 1;
+    } else if (hwcursor.X < 0) {
+        hwcursor.X = 0;
+    }
+
+    if (hwcursor.Y >= hwcursor.GameH) {
+        hwcursor.Y = hwcursor.GameH - 1;
+    } else if (hwcursor.Y < 0) {
+        hwcursor.Y = 0;
+    }
+}
+
+void Get_Video_Window_Size(int& w, int& h)
+{
+    if (window) {
+        SDL_GetWindowSize(window, &w, &h);
+    } else {
+        w = 0;
+        h = 0;
+    }
+}
+
+/*
+** Map normalized touch coordinates (0..1 across the window, as SDL finger
+** events report) to game buffer coordinates, accounting for the letterboxed
+** render rectangle. Returns false if the touch landed in the letterbox bars.
+*/
+bool Video_Touch_To_Game(float nx, float ny, int& gx, int& gy)
+{
+    if (!renderer) {
+        gx = gy = 0;
+        return false;
+    }
+
+    int out_w, out_h;
+    SDL_GetRendererOutputSize(renderer, &out_w, &out_h);
+
+    // Normalized window coords are resolution independent, so scale by the
+    // renderer output (pixels), which is the space render_dst lives in.
+    float px = nx * out_w;
+    float py = ny * out_h;
+
+    bool inside = true;
+    if (px < render_dst.x || px >= render_dst.x + render_dst.w || py < render_dst.y
+        || py >= render_dst.y + render_dst.h) {
+        inside = false;
+    }
+
+    gx = (int)((px - render_dst.x) / (float)render_dst.w * hwcursor.GameW);
+    gy = (int)((py - render_dst.y) / (float)render_dst.h * hwcursor.GameH);
+
+    if (gx < 0) {
+        gx = 0;
+    } else if (gx >= hwcursor.GameW) {
+        gx = hwcursor.GameW - 1;
+    }
+    if (gy < 0) {
+        gy = 0;
+    } else if (gy >= hwcursor.GameH) {
+        gy = hwcursor.GameH - 1;
+    }
+
+    return inside;
 }
 
 void Get_Video_Mouse(int& x, int& y)
@@ -850,8 +935,79 @@ private:
     GBC_Enum flags;
 };
 
+/*
+** Mobile OSes seize the drawable when the app is backgrounded; issuing GPU
+** work around suspension causes drawable-acquire failures on resume. The
+** event watch flips the flag immediately even if the main loop is not
+** currently pumping events.
+*/
+static SDL_atomic_t video_suspended;
+
+static int SDLCALL App_Lifecycle_Watch(void* userdata, SDL_Event* event)
+{
+    switch (event->type) {
+    case SDL_APP_WILLENTERBACKGROUND:
+        SDL_AtomicSet(&video_suspended, 1);
+        break;
+    case SDL_APP_DIDENTERFOREGROUND:
+        SDL_AtomicSet(&video_suspended, 0);
+        break;
+    }
+
+    return 1;
+}
+
+void Video_Register_Lifecycle_Watch()
+{
+    static bool registered = false;
+    if (!registered) {
+        SDL_AddEventWatch(App_Lifecycle_Watch, nullptr);
+        registered = true;
+    }
+}
+
+/*
+** Raise or dismiss the on-screen keyboard. SDL_StartTextInput is what triggers
+** the iOS software keyboard to appear; it also enables SDL_TEXTINPUT events.
+** No-op cost on desktop, where a hardware keyboard is always present.
+*/
+// True while a game text field wants keyboard input. This is our own intent
+// flag: SDL_IsTextInputActive() stays true after the user taps iOS's
+// hide-keyboard key, so it cannot tell us whether the keyboard *should* be up.
+static bool VirtualKeyboardWanted = false;
+
+bool Virtual_Keyboard_Wanted()
+{
+    return VirtualKeyboardWanted;
+}
+
+void Show_Virtual_Keyboard(bool show)
+{
+    VirtualKeyboardWanted = show;
+    if (show) {
+        SDL_StartTextInput();
+    } else {
+        SDL_StopTextInput();
+    }
+}
+
+// Re-raise the keyboard if a field wants it but the user dismissed it. A
+// stop/start cycle is required: a bare StartTextInput is a no-op while SDL
+// still considers text input active.
+void Reraise_Virtual_Keyboard()
+{
+    if (VirtualKeyboardWanted) {
+        SDL_StopTextInput();
+        SDL_StartTextInput();
+    }
+}
+
 void Video_Render_Frame()
 {
+    if (SDL_AtomicGet(&video_suspended)) {
+        return;
+    }
+
     if (frontSurface) {
         frontSurface->RenderSurface();
     }

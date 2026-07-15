@@ -1264,6 +1264,12 @@ void ScoreClass::Input_Name(char str[], int xpos, int ypos, char const pal[])
     void const* keystrok = MFCD::Retrieve("KEYSTROK.AUD");
 
     /*
+    ** This is a bespoke input loop (not an EditClass), so raise the on-screen
+    ** keyboard here directly. No-op on desktop.
+    */
+    Show_Virtual_Keyboard(true);
+
+    /*
     ** Ready the hidpage so it can restore background under zoomed letters
     */
     SeenPage.Blit(HidPage);
@@ -1368,6 +1374,8 @@ void ScoreClass::Input_Name(char str[], int xpos, int ypos, char const pal[])
 
         Frame_Limiter();
     } while (key != KA_RETURN); //	} while(key != KN_RETURN && key!=KN_KEYPAD_RETURN);
+
+    Show_Virtual_Keyboard(false);
 }
 
 void Animate_Cursor(int pos, int ypos)
