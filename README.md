@@ -95,6 +95,37 @@ To create a portable bundle for macOS we run [macdylibbundler](https://github.co
 
 CMake will attempt to generate icons in an appropriate format for Windows and macOS if ImageMagick is found in the system PATH. Otherwise you will end up with generic "program" icons.
 
+### iOS / iPadOS
+
+Tiberian Dawn and Red Alert can be built as native ARM64 iOS/iPadOS apps
+(SDL2 rendering through Metal, OpenAL audio, touch controls). This is a
+community port; see [docs/port/IOS_PORT_PLAN.md](docs/port/IOS_PORT_PLAN.md)
+for the full engineering log and
+[docs/port/IOS_LESSONS_LEARNED.md](docs/port/IOS_LESSONS_LEARNED.md) for a
+reusable methodology.
+
+Requirements: an Apple Silicon Mac with Xcode, CMake 3.25+, Ninja, and an
+iPad/iPhone on iPadOS/iOS 15+. Build helpers live in `scripts/build/ios/`:
+
+```sh
+# 1. Build static SDL2 + openal-soft for arm64-iOS (once).
+./scripts/build/ios/build-deps.sh
+
+# 2. Configure and build the games for iOS.
+cmake --preset ios
+cmake --build --preset ios
+
+# 3. Package an unsigned .ipa with your game data bundled in.
+./scripts/build/ios/package-ios.sh td --data /path/to/TiberianDawn/data
+./scripts/build/ios/package-ios.sh ra --data /path/to/RedAlert/data
+```
+
+The resulting `dist/ios/*.ipa` are unsigned. This port has only been tested
+running through [LiveContainer](https://github.com/khanhduytran0/LiveContainer)
+(no Apple Developer account required); in theory a signed build should also work
+as a normal native sideload with an Apple Developer account, but that path is
+untested. You supply your own game data, exactly as with the desktop builds.
+
 ## Releases
 
 Binary releases of the latest commit are available from [here](https://github.com/TheAssemblyArmada/Vanilla-Conquer/releases/tag/latest), which is updated whenever new code is merged into the main branch.
@@ -114,6 +145,23 @@ The demo supports custom skirmish maps (except interior) and includes one campai
 While it is possible to use the game data from the Remastered Collection, The Ultimate Collection or The First Decade they are currently _not_ supported.
 Any repackaged version that you may already have from any unofficial source is _not_ supported.
 If you encounter a bug that may be data related like invisible things or crashing when using a certain unit please retest with the retail data first before submitting a bug report.
+
+### iOS / iPadOS
+
+Build the `.ipa` files as described above (the game data is bundled into the
+app at packaging time). Install the `.ipa` with
+[LiveContainer](https://github.com/khanhduytran0/LiveContainer) — either by
+copying it onto the device or by hosting it and downloading over HTTP — then
+install it from the LiveContainer app list.
+
+What works today: full single-player campaigns for both games, touch controls
+(tap to select, drag for a selection box, two-finger tap to deselect/right-
+click, three-finger drag to scroll the map), tap to skip cutscenes, and the
+on-screen keyboard for name entry. LAN multiplayer does **not** currently work
+under LiveContainer — see the port docs for details.
+
+This has only been tested under LiveContainer; a signed native sideload
+(Apple Developer account) should also work in theory but is untested.
 
 ### Remastered
 

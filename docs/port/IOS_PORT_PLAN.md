@@ -5,9 +5,29 @@ iPad Pro 11", M-series, 2388×1668 @ 120 Hz). Red Alert 2 is out of scope — it
 was never released and it is not part of this engine.
 
 Methodology adapted from the C&C Generals iOS port
-([ammaarreshi/Generals-Mac-iOS-iPad](https://github.com/ammaarreshi/Generals-Mac-iOS-iPad),
-`docs/port/PORTING_PATTERNS.md` + `PORTING_PLAYBOOK.md`), scaled down to fit this
-codebase — which is in dramatically better starting shape than Generals was.
+([ammaarreshi/Generals-Mac-iOS-iPad](https://github.com/ammaarreshi/Generals-Mac-iOS-iPad)),
+scaled down to fit this codebase — which is in dramatically better starting
+shape than Generals was. See also
+[IOS_LESSONS_LEARNED.md](IOS_LESSONS_LEARNED.md) for the reusable, engine-
+agnostic version of what this port taught.
+
+## Current status
+
+Both games run natively on the iPad Pro via LiveContainer. Confirmed on device:
+
+- ✅ Boots to menu; full single-player campaigns (TD and RA)
+- ✅ Touch controls: tap = select, drag = selection box, two-finger tap =
+  right-click/deselect, three-finger drag = map scroll
+- ✅ Tap to skip cutscenes; app-lifecycle-safe backgrounding
+- ✅ On-screen keyboard for save names and high-score entry
+- ✅ App icons + names ("C&C: Tiberian Dawn" / "C&C: Red Alert"); clean Exit
+- ✅ Aspect-preserving letterbox (fill-screen tried, reverted — stretched 4:3)
+- ⬜ **LAN multiplayer — not working.** iOS blocks UDP broadcast for sandboxed
+  apps; needs a direct-IP unicast connect path. Only known-incomplete feature.
+
+Work lives on the `ios-port` branch. Build helpers: `scripts/build/ios/`
+(`build-deps.sh`, `package-ios.sh`, `make-icons.sh`, `push-gamedata.sh`,
+`patches/`). The `ios` CMake preset builds the games.
 
 ## Why this port is tractable
 
