@@ -286,6 +286,27 @@ fake touches or SDL touch simulation), tune on device.
   preferring `<machine/endian.h>` on Apple platforms.
 - **`SDL_MAIN_HANDLED`** was defined in `common/wwkeyboard.h` and
   `redalert/startup.cpp`; both now skip it on iOS so `SDL_main` wrapping works.
+- **App icons / names:** generated no-alpha PNGs from the project SVGs
+  (`make-icons.sh`), display names "C&C: Tiberian Dawn" / "C&C: Red Alert" set
+  via plutil in packaging. SpringBoard caches icons; a device restart may be
+  needed for a changed icon to appear.
+- **Exit Game hung on a black screen:** on iOS SDL owns the UIApplicationMain
+  run loop, so returning from `SDL_main` (after Main_Game clears the screen)
+  doesn't terminate the process. Both games now `exit()` explicitly on iOS
+  after cleanup; under LiveContainer this returns to the container.
+- **Fill-screen scaling — reverted.** Defaulting `Boxing=off` on iOS filled the
+  display but stretched the ~4:3 game horizontally; per preference, reverted to
+  the aspect-preserving 16:10 letterbox (still adjustable via `[Video] Boxing`).
+- **LAN multiplayer — NOT working (open).** iPad↔Mac discovery failed in both
+  directions. The Mac host is provably correct (log shows broadcast to
+  `10.0.2.255` and `255.255.255.255`). Root cause is iOS blocking UDP
+  broadcast/multicast receive for sandboxed apps without the
+  `com.apple.developer.networking.multicast` entitlement, which unsigned
+  LiveContainer can't supply; the granted "local network" permission only
+  covers unicast (Bonjour/direct). Discovery in `common/wspudp.cpp` is
+  broadcast-only. Fix path: add a direct-IP **unicast** connect option (UI
+  field + unicast connect in wspudp.cpp) to bypass broadcast discovery.
+  Single-player is fully working; this is the sole known-incomplete feature.
 
 ## Risks / open questions
 
