@@ -104,6 +104,10 @@ for the full engineering log and
 [docs/port/IOS_LESSONS_LEARNED.md](docs/port/IOS_LESSONS_LEARNED.md) for a
 reusable methodology.
 
+The iOS/iPadOS port was created with the help of
+[Claude Code](https://claude.com/claude-code) (using the Fable 5 and
+Opus 4.8 models).
+
 Requirements: an Apple Silicon Mac with Xcode, CMake 3.25+, Ninja, and an
 iPad/iPhone on iPadOS/iOS 15+. Build helpers live in `scripts/build/ios/`:
 
