@@ -163,6 +163,17 @@ under LiveContainer — see the port docs for details.
 This has only been tested under LiveContainer; a signed native sideload
 (Apple Developer account) should also work in theory but is untested.
 
+Known issues under LiveContainer:
+
+- **Orientation is not locked.** The game is landscape, but LiveContainer
+  overrides the app's own orientation handling, so rotating the iPad to
+  portrait leaves the view clipped. Rotate back to landscape to fix it (or use
+  the iPad's Control Center rotation lock while in landscape). Some
+  LiveContainer builds also expose a per-app Orientation setting
+  (long-press the app → Settings) that can lock it to landscape.
+- **LAN multiplayer does not work.** iOS blocks UDP broadcast for sandboxed
+  apps, which is how peer discovery works. See the port docs for details.
+
 ### Remastered
 
 The build process will produce _Vanilla_TD_ and _Vanilla_RA_ directories in your build directory if you enable them with `-DBUILD_REMASTERTD=ON` and `-DBUILD_REMASTERRA=ON`.

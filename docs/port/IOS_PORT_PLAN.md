@@ -317,6 +317,17 @@ fake touches or SDL touch simulation), tune on device.
 - **Fill-screen scaling — reverted.** Defaulting `Boxing=off` on iOS filled the
   display but stretched the ~4:3 game horizontally; per preference, reverted to
   the aspect-preserving 16:10 letterbox (still adjustable via `[Video] Boxing`).
+- **Orientation lock — not achievable from the guest under LiveContainer
+  (open, low severity).** The app requests landscape (`SDL_HINT_ORIENTATIONS`
+  plus `UISupportedInterfaceOrientations~ipad` in the plist), but LiveContainer
+  swizzles the guest's orientation methods and forces autorotation, and iOS
+  reads the *host's* plist, not the guest's — so nothing the app does takes
+  effect. Rotating to portrait clips the view. Remedies: rotate back to
+  landscape, use the iPad Control-Center rotation lock, or (on LiveContainer
+  builds that expose it) the per-app Orientation setting; LiveContainer 3.7.2
+  did not show that setting. Left as a documented known issue. The
+  `SDL_HINT_ORIENTATIONS` line is kept because it is correct for a signed
+  native install.
 - **LAN multiplayer — NOT working (open).** iPad↔Mac discovery failed in both
   directions. The Mac host is provably correct (log shows broadcast to
   `10.0.2.255` and `255.255.255.255`). Root cause is iOS blocking UDP

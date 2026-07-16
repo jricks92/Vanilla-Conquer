@@ -143,6 +143,20 @@ connection). If the classic game only discovers peers by broadcast, LAN
 multiplayer will silently find nothing. The fix is real work: add a direct-IP
 unicast connect path. We deferred it.
 
+### 2.12 Under a host container you don't control orientation (or the plist)
+If the app runs inside a host launcher such as LiveContainer (rather than as its
+own signed install), two things change: iOS reads the *host's* Info.plist for
+policy like orientation, not the guest's; and the host may **swizzle** the
+guest's orientation methods and force autorotation. The result is that neither
+`UISupportedInterfaceOrientations[~ipad]` nor `SDL_HINT_ORIENTATIONS` locks the
+app — it rotates freely and a landscape game gets clipped in portrait. There is
+no guest-side fix; it must be set in the host's own per-app orientation setting
+(if exposed — it was absent in LiveContainer 3.7.2) or via the device rotation
+lock. More generally: **anything driven by the app bundle's Info.plist or by
+"tell iOS my capabilities" APIs may be read from the host, not your guest, under
+a container.** Keep the correct guest-side settings anyway (they work for a real
+signed install), but don't expect them to bind under a container.
+
 ---
 
 ## 3. Input: touch for a mouse-first game
@@ -256,6 +270,7 @@ engine already has.
 | Suggestion bar shows old text | SDL iOS text field retains context (2.10) |
 | Taps land offset from finger | Letterbox / points-vs-pixels in coordinate mapping (3) |
 | LAN multiplayer finds no games | UDP broadcast blocked for sandboxed apps (2.11) |
+| App rotates to portrait despite landscape-only settings | Running under a host container (LiveContainer): it reads the host's plist and swizzles the guest's orientation methods, overriding both the plist keys and `SDL_HINT_ORIENTATIONS`. Not fixable from the guest; use the container's own orientation setting or the device rotation lock (2.12) |
 
 ---
 

@@ -226,6 +226,14 @@ bool Set_Video_Mode(int w, int h, int bits_per_pixel)
     SDL_SetHint(SDL_HINT_TOUCH_MOUSE_EVENTS, "0");
     SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS, "0");
 
+    // Request landscape-only. This works for a signed native install (SDL's
+    // UIKit view controller reports these as its supported orientations).
+    // NOTE: it has no effect under LiveContainer, which swizzles the guest's
+    // orientation methods and forces autorotation; there, orientation must be
+    // handled via LiveContainer's own per-app Orientation setting or the iPad
+    // rotation lock. Kept here because it is correct for the native path.
+    SDL_SetHint(SDL_HINT_ORIENTATIONS, "LandscapeLeft LandscapeRight");
+
     // iOS starts with text input active, which would raise the software
     // keyboard on the menus. Default it off; text fields turn it on explicitly.
     SDL_StopTextInput();
