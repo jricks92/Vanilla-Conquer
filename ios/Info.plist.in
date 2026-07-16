@@ -72,6 +72,14 @@
         <string>UIInterfaceOrientationLandscapeLeft</string>
         <string>UIInterfaceOrientationLandscapeRight</string>
     </array>
+    <!-- iPad reads the ~ipad-suffixed key and, if it is absent, allows all four
+         orientations regardless of the key above. Repeat the landscape-only
+         list here to actually lock the iPad to landscape. -->
+    <key>UISupportedInterfaceOrientations~ipad</key>
+    <array>
+        <string>UIInterfaceOrientationLandscapeLeft</string>
+        <string>UIInterfaceOrientationLandscapeRight</string>
+    </array>
     <key>UIApplicationSupportsIndirectInputEvents</key>
     <true/>
     <key>UIFileSharingEnabled</key>
