@@ -243,8 +243,15 @@ void DisplayClass::One_Time(void)
                 Mem_Copy(FadingShade, RemapTables[hindex][fade], 256);
                 break;
             }
-            Mem_Copy(
-                &RemapTables[hindex][fade][((int)hindex + 11) * 16], &RemapTables[hindex][fade][(0 + 11) * 16], 16);
+            /*
+            **	Only the first few houses have a dedicated 16 color block inside the
+            **	256 entry table; for the remaining (multiplayer) houses the source
+            **	index would read past the end of the row.
+            */
+            if ((((int)hindex + 11) * 16) + 16 <= 256) {
+                Mem_Copy(
+                    &RemapTables[hindex][fade][((int)hindex + 11) * 16], &RemapTables[hindex][fade][(0 + 11) * 16], 16);
+            }
         }
     }
 }
