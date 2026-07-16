@@ -208,7 +208,7 @@ int main(int argc, char** argv)
         printf("Zuwenig Hauptspeicher verf?gbar.\n");
 #else
 #ifdef FRENCH
-        printf("M‚moire vive (RAM) insuffisante.\n");
+        printf("Mï¿½moire vive (RAM) insuffisante.\n");
 #else
         printf("Insufficient RAM available.\n");
 #endif
@@ -424,7 +424,9 @@ int main(int argc, char** argv)
         ** See if we should run the intro
         */
         INIClass ini;
-        ini.Load(cfile);
+        if (cfile.Is_Available()) {
+            ini.Load(cfile);
+        }
 
         /*
         **	Check for forced intro movie run disabling. If the conquer
@@ -457,7 +459,9 @@ int main(int argc, char** argv)
         /*
         ** Save settings if they were changed during gameplay.
         */
-        ini.Load(cfile);
+        if (cfile.Is_Available()) {
+            ini.Load(cfile);
+        }
         Settings.Save(ini);
         ini.Save(cfile);
 

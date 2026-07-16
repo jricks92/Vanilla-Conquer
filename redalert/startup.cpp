@@ -446,7 +446,9 @@ int main(int argc, char* argv[])
         ** See if we should run the intro
         */
         INIClass ini;
-        ini.Load(cfile);
+        if (cfile.Is_Available()) {
+            ini.Load(cfile);
+        }
 
         /*
         **	Check for forced intro movie run disabling. If the conquer
@@ -479,7 +481,9 @@ int main(int argc, char* argv[])
         /*
         ** Save settings if they were changed during gameplay.
         */
-        ini.Load(cfile);
+        if (cfile.Is_Available()) {
+            ini.Load(cfile);
+        }
         Settings.Save(ini);
         ini.Save(cfile);
 
